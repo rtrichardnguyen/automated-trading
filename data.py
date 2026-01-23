@@ -37,7 +37,7 @@ class DataHandler(object):
 
 
     @abstractmethod
-    def get_latest_bars(self, symbol, N=1)
+    def get_latest_bars(self, symbol, N=1):
 
         """
         Returns the last N bars updated.
@@ -64,7 +64,7 @@ class DataHandler(object):
         raise NotImplementedError("Implement get_latest_bar_value()")
 
     @abstractmethod
-    def get_latest_bar_values(self, symbol, val_type, N=1)
+    def get_latest_bar_values(self, symbol, val_type, N=1):
 
         """
         Returns the last N bar values from the

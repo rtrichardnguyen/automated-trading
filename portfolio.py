@@ -125,7 +125,7 @@ class Portfolio(object):
         # ================
 
         dp = dict((k, v) for k, v in [(s, 0) for s in self.symbol_list])
-        dp = ['datetime'] = latest_datetime
+        dp['datetime'] = latest_datetime
 
         for s in self.symbol_list:
             dp[s] = self.current_positions[s] 
@@ -291,7 +291,7 @@ class Portfolio(object):
         stats = [('Total Return', f'{(total_return - 1.0) * 100:.2f}%'),
                 ('Sharpe Ratio', f'{sharpe_ratio:.2f%}'),
                 ('Max Drawdown', f'{max_dd:.2f%}'),
-                ('Drawdown Duration', f'{dd_duration:.2f%')]
+                ('Drawdown Duration', f'{dd_duration:.2f%}')]
 
         self.equity_curve.to_csv('equity.csv')
         return stats

@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Time(Enum)
+class Time(Enum):
 
     TRADING_DAYS = 252
     MINUTES_IN_HOURS = 60
