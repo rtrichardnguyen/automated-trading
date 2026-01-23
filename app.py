@@ -1,8 +1,12 @@
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import os
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import GetAssetsRequest
+
+import yfinance as yf
+import pandas as pd
 
 load_dotenv()
 
@@ -19,3 +23,10 @@ if account.trading_blocked:
 
 # Check how much money we can use to open new positions.
 print('${} is available as buying power.'.format(account.buying_power))
+
+ticker = yf.Ticker("SPY")
+df = ticker.history(interval='1d', start=(pd.Timestamp.now(tz='UTC') - timedelta(weeks=260)))
+
+df.to_csv("SPY.csv")
+
+

@@ -85,6 +85,25 @@ class DataHandler(object):
         raise NotImplementedError("Implement update_bars()")
 
 
+class HistoricCSVDataHandler(DataHandler):
+
+    def __init__(self, events, csv_dir, symbol_list):
+
+        self.events = events
+        self.csv_dir = csv_dir
+        self.symbol_list = symbol_list
+
+        self.symbol_data = {}
+        self.latest_symbol_data = {}
+        self.continus_backtest = True
+
+        self._open_convert_csv_files()
+
+
+    def _open_convert_csv_files(self):
+
+        for symbol in self.symbol_list:
+
 
 
 
