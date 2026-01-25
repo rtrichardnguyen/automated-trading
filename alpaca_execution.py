@@ -25,8 +25,6 @@ class AlpacaExecutionHandler(ExecutionHandler):
 
             self.trading_stream = TradingStream(public_key, secret_key, paper=True)
             self.trading_stream.subscribe_trade_updates(self._on_trade_update)
-            self.trading_stream.run()
-
 
         def execute_order(self, event):
 
@@ -105,7 +103,7 @@ class AlpacaExecutionHandler(ExecutionHandler):
                 order_data = MarketOrderRequest(
                                 symbol=symbol,
                                 qty=qty,
-                                side=order_side,
+                                side=side,
                                 time_in_force=TimeInForce.DAY
                             )  
 
@@ -114,7 +112,7 @@ class AlpacaExecutionHandler(ExecutionHandler):
                 order_data = LimitOrderRequest(
                                 symbol=symbol,
                                 qty=qty,
-                                side=order_side,
+                                side=side,
                                 time_in_force=TimeInForce.DAY,
                                 limit_price=0 # TODO: Implement Limit Price
                             )
@@ -127,4 +125,8 @@ class AlpacaExecutionHandler(ExecutionHandler):
 
         def close_connection(self):
 
-            self.trading_stream.close()
+            self.trading_stream.stop()
+
+        def open_connection(self):
+
+            self.trading_stream.run()
