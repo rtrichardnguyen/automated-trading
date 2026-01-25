@@ -1,8 +1,9 @@
 # execution.py
 
 from abc import ABCMeta, abstractmethod
+from queue import Queue
+
 import datetime
-import queue
 import requests
 
 from event import FillEvent, OrderEvent

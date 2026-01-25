@@ -2,8 +2,9 @@
 
 import datetime
 import pprint
-import queue
 import time
+
+from queue import Queue
 
 class Backtest(object):
 
