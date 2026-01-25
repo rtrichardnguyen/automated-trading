@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from queue import Queue
 import os
+import threading
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import GetAssetsRequest
@@ -36,9 +37,14 @@ df.to_csv("SPY.csv")
 
 '''
 event_queue = Queue()
-anf_order = OrderEvent('ANF', 'MKT', 1, 'LONG')
+
 execution_handler = AlpacaExecutionHandler(event_queue, PUBLIC_KEY, SECRET_KEY)
-execution_handler.open_connection()
-execution_handler.execute_order(anf_order)
-print(event_queue.queue)
-execution_handler.close_connection()
+
+ws_thread = threading.Thread(target=execution_handler.open_connection, daemon=True)
+ws_thread.start()
+
+try:
+    anf_order = OrderEvent('MSFT', 'MKT', 1, 'LONG')
+    execution_handler.execute_order(anf_order)
+except KeyboardInterrupt:
+    execution_handler.close_connection()
