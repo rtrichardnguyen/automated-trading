@@ -41,46 +41,46 @@ class ExecutionHandler(object):
         raise NotImplementedError("Implement execute_order()")
 
 
-    class SimulatedExecutionHandler(ExecutionHandler):
+class SimulatedExecutionHandler(ExecutionHandler):
+
+    """
+    The simulated execution handler simply converts all order
+    objects into their equivalent fill objects automatically
+    without latency, slippage or fill-ratio issues.
+
+    This allows a straightforward "first go" test of any strategy,
+    before implementation with a more sophisticated execution
+    handler.
+    """
+
+    def __init__(self, events):
 
         """
-        The simulated execution handler simply converts all order
-        objects into their equivalent fill objects automatically
-        without latency, slippage or fill-ratio issues.
+        Initialises the handler, setting the event queues
+        up internally.
 
-        This allows a straightforward "first go" test of any strategy,
-        before implementation with a more sophisticated execution
-        handler.
+        Parameters:
+        events - The Queue of Event objects.
         """
 
-        def __init__(self, events):
+        self.events = events
 
-            """
-            Initialises the handler, setting the event queues
-            up internally.
+    def execute_order(self, event):
 
-            Parameters:
-            events - The Queue of Event objects.
-            """
+        """
 
-            self.events = events
+        Simply  converts Order objects into Fill objects naively,
+        i.e. without any latency, slippage or fill ratio problems.
 
-        def execute_order(self, event):
+        Parameters:
+        event - Contains an Event object with order information.
 
-            """
+        """
 
-            Simply  converts Order objects into Fill objects naively,
-            i.e. without any latency, slippage or fill ratio problems.
+        if event.type == 'ORDER':
 
-            Parameters:
-            event - Contains an Event object with order information.
-
-            """
-
-            if event.type == 'ORDER':
-
-                fill_event = FillEvent(datetime.datetime.utcnow(), event.symbol, event.quantity, event.direction, None)
-                self.events.put(fill_event)
+            fill_event = FillEvent(datetime.datetime.utcnow(), event.symbol, event.quantity, event.direction, None)
+            self.events.put(fill_event)
 
 
-    
+

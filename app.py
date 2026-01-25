@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from queue import Queue
 import os
 
 from alpaca.trading.client import TradingClient
@@ -9,11 +10,14 @@ from alpaca.trading.stream import TradingStream
 import yfinance as yf
 import pandas as pd
 
+from event import OrderEvent
+from alpaca_execution import AlpacaExecutionHandler
+
 load_dotenv()
 
 PUBLIC_KEY = os.getenv('PUBLIC_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
-
+'''
 trading_client = TradingClient(PUBLIC_KEY, SECRET_KEY)
 
 account = trading_client.get_account()
@@ -30,16 +34,9 @@ df = ticker.history(interval='1d', start=(pd.Timestamp.now(tz='UTC') - timedelta
 
 df.to_csv("SPY.csv")
 
-stream = TradingStream(PUBLIC_KEY, SECRET_KEY)
-
-async def on_trade_update(data):
-    print("EVENT:", data.event)
-    print("ORDER ID:", data.order.id)
-    print("SYMBOL:", data.order.symbol)
-    print("STATUS:", data.order.status)
-    print("FILLED_QTY:", data.order.filled_qty)
-    print("AVG_PRICE:", data.order.filled_avg_price)
-
-stream.subscribe_trade_updates(on_trade_update)
-
-stream.run()
+'''
+event_queue = Queue()
+anf_order = OrderEvent('ANF', 'MKT', 1, 'LONG')
+execution_handler = AlpacaExecutionHandler(event_queue, PUBLIC_KEY, SECRET_KEY)
+print(event_queue.queue)
+execution_handler.close_connection()
