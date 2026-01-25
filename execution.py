@@ -3,6 +3,7 @@
 from abc import ABCMeta, abstractmethod
 import datetime
 import queue
+import requests
 
 from event import FillEvent, OrderEvent
 
@@ -82,5 +83,4 @@ class ExecutionHandler(object):
                 self.events.put(fill_event)
 
 
-
-
+    
