@@ -3,8 +3,7 @@
 import datetime
 import pprint
 import time
-
-from queue import Queue
+import queue
 
 class Backtest(object):
 
@@ -69,7 +68,7 @@ class Backtest(object):
 
         self.data_handler = self.data_handler_cls(self.events, self.csv_dir, self.symbol_list)
         self.strategy = self.strategy_cls(self.data_handler, self.events)
-        self.portfolio = self.portfolio_cls(self.data_handler, self.events, self.start_dat, self.initial_capital)
+        self.portfolio = self.portfolio_cls(self.data_handler, self.events, self.start_date, self.initial_capital)
         self.execution_handler = self.execution_handler_cls(self.events)
 
 

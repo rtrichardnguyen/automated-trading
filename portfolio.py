@@ -10,8 +10,6 @@ import pandas as pd
 from event import FillEvent, OrderEvent
 from performance import create_sharpe_ratio, create_drawdowns
 
-from time import Time
-
 class Portfolio(object):
 
     """
@@ -48,8 +46,9 @@ class Portfolio(object):
 
         self.bars = bars
         self.events = events
+        self.symbol_list = self.bars.symbol_list
         self.start_date = start_date
-        start.initial_capital = initial_capital
+        self.initial_capital = initial_capital
 
         self.all_positions = self.construct_all_positions()
         self.current_positions = dict((k, v) for k, v in \
@@ -284,7 +283,7 @@ class Portfolio(object):
         returns = self.equity_curve['returns']
         pnl = self.equity_curve['equity_curve']
 
-        sharpe_ratio = create_sharpe_ratio(returns, periods=(Time.MINUTE_BARS))
+        sharpe_ratio = create_sharpe_ratio(returns, periods=(252*60*6.5))
         drawdown, max_dd, dd_duration = create_drawdowns(pnl)
         self.equity_curve['drawdown'] = drawdown
 
