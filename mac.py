@@ -41,9 +41,9 @@ class MovingAverageCrossStrategy(Strategy):
 
             for s in self.symbol_list:
 
-                bars = self.get_latest_bar_values(s, 'adj_close', N=self.long_window)
+                bars = self.bars.get_latest_bar_values(s, 'adj_close', N=self.long_window)
 
-                bar_date = get_latest_bar_datetime(s)
+                bar_date = self.bars.get_latest_bar_datetime(s)
 
                 if bars.size > 0:
 

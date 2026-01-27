@@ -123,6 +123,7 @@ class FillEvent(Event):
 
         """
 
+        self.type = 'FILL'
         self.timeindex = timeindex
         self.symbol = symbol
         self.exchange = exchange
@@ -131,12 +132,12 @@ class FillEvent(Event):
         self.fill_cost = fill_cost
 
         if commission is None:
-            self.commision = _calculate_commision()
+            self.commission = self._calculate_commission()
         else:
-            self.commision = commision
+            self.commission = commission
 
 
-    def _calculate_commision(self):
+    def _calculate_commission(self):
         # Generate Commision from broker
         # TODO
         return 0

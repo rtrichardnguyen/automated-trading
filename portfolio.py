@@ -139,7 +139,7 @@ class Portfolio(object):
         dh['datetime'] = latest_datetime
         dh['cash'] = self.current_holdings['cash']
         dh['commission'] = self.current_holdings['commission']
-        dh['total'] = self.curent_holdings['cash']
+        dh['total'] = self.current_holdings['cash']
 
         for s in self.symbol_list:
             market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, "adj_close")
@@ -191,11 +191,11 @@ class Portfolio(object):
             fill_dir = -1
 
         fill_cost = self.bars.get_latest_bar_value(fill.symbol, "adj_close")
-        cost = fill_cost * fill_quantity * fill_dir
+        cost = fill_cost * fill.quantity * fill_dir
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] = fill.commission
-        self.current_holdings['cash'] -= (cost + fill.commision)
-        self.current_holdings['total'] -= (cost + fill.commision)
+        self.current_holdings['cash'] -= (cost + fill.commission)
+        self.current_holdings['total'] -= (cost + fill.commission)
 
     def update_fill(self, event):
 
@@ -253,7 +253,7 @@ class Portfolio(object):
         """
 
         if event.type == 'SIGNAL':
-            order_event = generate_naive_order(event)
+            order_event = self.generate_naive_order(event)
             self.events.put(order_event)
 
 
@@ -288,9 +288,9 @@ class Portfolio(object):
         self.equity_curve['drawdown'] = drawdown
 
         stats = [('Total Return', f'{(total_return - 1.0) * 100:.2f}%'),
-                ('Sharpe Ratio', f'{sharpe_ratio:.2f%}'),
-                ('Max Drawdown', f'{max_dd:.2f%}'),
-                ('Drawdown Duration', f'{dd_duration:.2f%}')]
+                ('Sharpe Ratio', f'{sharpe_ratio:.2f}%'),
+                ('Max Drawdown', f'{max_dd:.2f}%'),
+                ('Drawdown Duration', f'{dd_duration:.2f}')]
 
         self.equity_curve.to_csv('equity.csv')
         return stats
