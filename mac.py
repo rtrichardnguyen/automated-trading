@@ -14,7 +14,7 @@ from portfolio import Portfolio
 
 class MovingAverageCrossStrategy(Strategy):
 
-    def __init__(self, bars, events, short_window=100, long_window=400):
+    def __init__(self, bars, events, short_window=20, long_window=50):
 
         self.bars = bars
         self.events = events
