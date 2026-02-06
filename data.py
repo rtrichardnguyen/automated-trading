@@ -170,7 +170,7 @@ class HistoricCSVDataHandler(DataHandler):
             print("Symbol is not available in data set")
             raise
         else:
-            return np.array([getattr(b[1], val_type) for b in bars_list])
+            return np.array([getattr(b[1], val_type) for b in bars_list[-N:]])
 
     def update_bars(self):
         for s in self.symbol_list:

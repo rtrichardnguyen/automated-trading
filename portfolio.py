@@ -193,7 +193,7 @@ class Portfolio(object):
         fill_cost = self.bars.get_latest_bar_value(fill.symbol, "adj_close")
         cost = fill_cost * fill.quantity * fill_dir
         self.current_holdings[fill.symbol] += cost
-        self.current_holdings['commission'] = fill.commission
+        self.current_holdings['commission'] += fill.commission
         self.current_holdings['cash'] -= (cost + fill.commission)
         self.current_holdings['total'] -= (cost + fill.commission)
 
@@ -254,7 +254,8 @@ class Portfolio(object):
 
         if event.type == 'SIGNAL':
             order_event = self.generate_naive_order(event)
-            self.events.put(order_event)
+            if order_event is not None:
+                self.events.put(order_event)
 
 
 

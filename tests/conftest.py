@@ -33,12 +33,14 @@ def initial_capital():
 
 @pytest.fixture
 def sample_csv_data():
-    """Sample OHLCV data for testing."""
-    dates = pd.date_range('2024-01-01', periods=100, freq='D')
+    """Deterministic OHLCV data for testing with known prices."""
+    dates = pd.date_range('2024-01-01', periods=10, freq='D')
+    # Explicit, hand-chosen prices - no randomness
+    prices = [100.0, 102.0, 101.0, 104.0, 103.0, 106.0, 105.0, 108.0, 107.0, 110.0]
     data = {
-        'open': np.random.uniform(95, 105, 100),
-        'close': np.random.uniform(95, 105, 100),
-        'adj_close': np.random.uniform(95, 105, 100),
-        'volume': np.random.randint(1000000, 10000000, 100)
+        'open':      [p - 1.0 for p in prices],
+        'close':     prices,
+        'adj_close': prices,
+        'volume':    [1000000] * 10
     }
     return pd.DataFrame(data, index=dates)

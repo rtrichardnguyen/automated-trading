@@ -13,6 +13,11 @@ class TestMarketEvent:
         event = MarketEvent()
         assert event.type == 'MARKET'
 
+    def test_market_event_inherits_from_event(self):
+        """Test MarketEvent is a subclass of Event."""
+        event = MarketEvent()
+        assert isinstance(event, Event)
+
 
 class TestSignalEvent:
     """Test SignalEvent class."""
@@ -46,6 +51,12 @@ class TestSignalEvent:
         dt = datetime(2024, 1, 1, 10, 0, 0)
         signal = SignalEvent(1, 'AAPL', dt, 'EXIT', 1.0)
         assert signal.signal_type == 'EXIT'
+
+    def test_signal_event_inherits_from_event(self):
+        """Test SignalEvent is a subclass of Event."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        signal = SignalEvent(1, 'AAPL', dt, 'LONG', 1.0)
+        assert isinstance(signal, Event)
 
 
 class TestOrderEvent:
@@ -97,6 +108,11 @@ class TestOrderEvent:
         assert '100' in captured.out
         assert 'BUY' in captured.out
 
+    def test_order_event_inherits_from_event(self):
+        """Test OrderEvent is a subclass of Event."""
+        order = OrderEvent('AAPL', 'MKT', 100, 'BUY')
+        assert isinstance(order, Event)
+
 
 class TestFillEvent:
     """Test FillEvent class."""
@@ -124,7 +140,7 @@ class TestFillEvent:
         assert fill.commission == 1.0
 
     def test_fill_event_creation_without_commission(self):
-        """Test FillEvent creation without commission (should default to 0)."""
+        """Test FillEvent creation without commission defaults to 0."""
         dt = datetime(2024, 1, 1, 10, 0, 0)
         fill = FillEvent(dt, 'AAPL', 'NYSE', 100, 'BUY', 150.0)
         assert fill.commission == 0
@@ -135,3 +151,33 @@ class TestFillEvent:
         fill = FillEvent(dt, 'AAPL', 'NYSE', 50, 'SELL', 150.0)
         assert fill.direction == 'SELL'
         assert fill.quantity == 50
+
+    def test_fill_event_inherits_from_event(self):
+        """Test FillEvent is a subclass of Event."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        fill = FillEvent(dt, 'AAPL', 'NYSE', 100, 'BUY', 150.0)
+        assert isinstance(fill, Event)
+
+    def test_fill_event_commission_is_numeric(self):
+        """Test commission is numeric type when defaulted."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        fill = FillEvent(dt, 'AAPL', 'NYSE', 100, 'BUY', 150.0)
+        assert isinstance(fill.commission, (int, float))
+
+    def test_fill_event_with_none_fill_cost(self):
+        """SimulatedExecutionHandler sends fill_cost=None. Must be stored as-is."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        fill = FillEvent(dt, 'AAPL', 'NYSE', 100, 'BUY', None)
+        assert fill.fill_cost is None
+        assert fill.commission == 0
+
+    def test_order_event_boolean_quantity_accepted(self):
+        """bool is a subclass of int in Python, so True (=1) passes the int check."""
+        order = OrderEvent('AAPL', 'MKT', True, 'BUY')
+        assert order.quantity == True
+        assert isinstance(order.quantity, int)
+
+    def test_order_event_string_quantity_rejected(self):
+        """String quantity must raise ValueError."""
+        with pytest.raises(ValueError):
+            OrderEvent('AAPL', 'MKT', '100', 'BUY')
