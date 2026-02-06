@@ -174,7 +174,18 @@ automated-trading/
 ├── download.py             # Data download utilities
 ├── time.py                 # Time utilities
 ├── requirements.txt        # Python dependencies
-└── .env                    # Environment variables (create this)
+├── .env                    # Environment variables (create this)
+├── README.md               # Project documentation
+├── CLAUDE.md               # Development guide for Claude Code
+└── tests/                  # Unit and integration tests
+    ├── conftest.py         # Shared test fixtures
+    ├── test_event.py       # Event class tests
+    ├── test_portfolio.py   # Portfolio tests
+    ├── test_strategy.py    # Strategy tests
+    ├── test_execution.py   # Execution handler tests
+    ├── test_data.py        # Data handler tests
+    ├── test_performance.py # Performance metric tests
+    └── test_backtest.py    # Integration tests
 ```
 
 ## Strategy Example: Moving Average Crossover
@@ -222,6 +233,63 @@ df.to_csv("AAPL.csv")
 ### Portfolio Settings
 - Default commission: 0 (customize in `event.py:_calculate_commission()`)
 - Position sizing: Fixed 100 shares (customize in `portfolio.py:generate_naive_order()`)
+
+## Testing
+
+The project includes a comprehensive test suite using pytest.
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=. --cov-report=html
+
+# Run specific test file
+pytest tests/test_event.py
+
+# Run specific test class
+pytest tests/test_portfolio.py::TestPortfolioInitialization
+
+# Run with verbose output
+pytest -v
+```
+
+### Test Coverage
+
+Tests are organized by component:
+- **test_event.py**: Tests for all event types (Market, Signal, Order, Fill)
+- **test_portfolio.py**: Portfolio management, position tracking, and order generation
+- **test_strategy.py**: Strategy base class and Moving Average Crossover strategy
+- **test_execution.py**: Simulated execution handler tests
+- **test_data.py**: CSV data handler and bar access methods
+- **test_performance.py**: Sharpe ratio and drawdown calculations
+- **test_backtest.py**: End-to-end integration tests
+
+### Writing New Tests
+
+When adding new features, follow the existing test patterns:
+
+```python
+# tests/test_your_feature.py
+import pytest
+from your_module import YourClass
+
+@pytest.fixture
+def your_fixture():
+    """Provides test data or objects."""
+    return YourClass()
+
+class TestYourFeature:
+    """Test your feature."""
+
+    def test_basic_functionality(self, your_fixture):
+        """Test description."""
+        result = your_fixture.do_something()
+        assert result == expected_value
+```
 
 ## Contributing
 

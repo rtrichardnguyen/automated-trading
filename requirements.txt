@@ -1,3 +1,5 @@
 python-dotenv
 alpaca-py
 yfinance
+pytest
+pytest-cov

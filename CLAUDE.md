@@ -78,6 +78,33 @@ python download.py
 
 Downloads historical data from Yahoo Finance using `yfinance`. Currently hardcoded to download AMD data. Outputs CSV in the format expected by `HistoricCSVDataHandler`.
 
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage
+pytest --cov=. --cov-report=html
+
+# Run specific test file
+pytest tests/test_event.py
+
+# Run specific test
+pytest tests/test_portfolio.py::TestPortfolioInitialization::test_initialization
+
+# Run with verbose output
+pytest -v
+```
+
+Test structure:
+- `tests/test_event.py`: Event class tests
+- `tests/test_portfolio.py`: Portfolio management tests
+- `tests/test_strategy.py`: Strategy and MAC strategy tests
+- `tests/test_execution.py`: Execution handler tests
+- `tests/test_data.py`: Data handler tests
+- `tests/test_performance.py`: Performance metric tests
+- `tests/test_backtest.py`: Integration tests for full backtest
+
 ## CSV Data Format
 
 Historical data must have these columns (in this order):
