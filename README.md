@@ -353,8 +353,9 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 
 ## Literature
 
-Successful Algorithmic Trading - Michael L. Halls-Moore, PhD.
-Algorithmic Trading & DMA - Barry Johnson
+- Successful Algorithmic Trading - Michael L. Halls-Moore, PhD.
+- Algorithmic Trading & DMA - Barry Johnson
+- pre-print servers for strategies: arXiv, SSRN, Journal of Investment Strategies (risk.net), Journal of Computational Finance (risk.net)
 
 ## Disclaimer
 
