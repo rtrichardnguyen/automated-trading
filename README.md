@@ -306,6 +306,11 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 - [ ] Implement paper trading mode
 - [ ] Add logging and error handling improvements
 
+## Literature
+
+Successful Algorithmic Trading - Michael L. Halls-Moore, PhD.
+Algorithmic Trading & DMA - Barry Johnson
+
 ## Disclaimer
 
 This software is for educational purposes only. Trading financial instruments carries risk. Use at your own discretion and always test thoroughly before deploying with real capital.
