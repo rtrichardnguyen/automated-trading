@@ -291,6 +291,51 @@ class TestYourFeature:
         assert result == expected_value
 ```
 
+## Production Readiness
+
+### Current Status (as of 2026-02-07)
+
+- **Overall live-trading readiness**: ~40% (strong research/backtesting base, not yet safe for real-capital production)
+- **Backtesting test status**: `162 passed` via `./venv/bin/pytest -q`
+- **Coverage status**: `95% total` via `./venv/bin/pytest --cov=. --cov-report=term-missing -q`
+
+### What Is Already Strong
+
+- Event-driven architecture with clear component boundaries
+- Deterministic, high-coverage tests across core backtesting flows
+- End-to-end backtest execution from data feed to performance output
+
+### Key Gaps Before Production
+
+- Order direction semantics are inconsistent across components (`BUY`/`SELL` vs `LONG`/`SHORT`)
+- `AlpacaDataHandler` is currently a skeleton and not production-capable
+- Live execution path has runtime correctness issues (for example, invalid `datetime.datetime.utc.now()` usage and exception typos)
+- No production risk controls (position limits, daily loss limits, kill switch, exposure caps)
+- No persistent state/reconciliation for restarts (orders, fills, positions)
+- No structured observability stack (logs, metrics, alerting, audit trail)
+- No CI enforcement (tests/lint/type checks on every commit)
+- Dependencies are unpinned, reducing reproducibility and deployment safety
+
+### Minimum Go-Live Checklist
+
+- [ ] Unify order/fill direction model across strategy, portfolio, execution, and broker integrations
+- [ ] Fully implement `AlpacaDataHandler` with reconnect, backfill, and market-hours behavior
+- [ ] Harden `AlpacaExecutionHandler` for async updates, partial fills, retries, and idempotency
+- [ ] Add risk engine: sizing rules, max notional/exposure, daily loss limits, and emergency stop
+- [ ] Add persistent storage for orders/fills/positions and startup reconciliation with broker state
+- [ ] Add structured logging, metrics, and real-time alerts for trading and infrastructure failures
+- [ ] Add CI pipeline with coverage threshold, linting, and type checking
+- [ ] Pin dependencies and define a repeatable release environment
+- [ ] Create an operations runbook (incident response, manual override, rollback process)
+- [ ] Validate in paper trading for 2-4 weeks before limited-capital live rollout
+
+### Suggested Release Gates
+
+- **Gate 1**: Deterministic backtest acceptance criteria (reproducible metrics)
+- **Gate 2**: Stable paper trading period with zero unreconciled state drift
+- **Gate 3**: Limited-capital live with strict risk caps and alerting
+- **Gate 4**: Scale up only after a clean pilot period and post-trade reviews
+
 ## Contributing
 
 Feel free to submit issues, fork the repository, and create pull requests for any improvements.
