@@ -1,0 +1,16 @@
+[project]
+name = "automated-trading"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alpaca-py>=0.43.2",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "python-dotenv>=1.2.1",
+    "scikit-learn>=1.8.0",
+    "yfinance>=1.2.0",
+]

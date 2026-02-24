@@ -43,8 +43,8 @@ class LinearRegressionStrategy(Strategy):
             spy = self.symbol_list[0]
             nvda = self.symbol_list[1]
 
-            X = self.bars.get_latest_bar_values(spy, 'adj_close', N=1000).reshape(-1, 1)
-            Y = self.bars.get_latest_bar_values(nvda, 'adj_close', N=1000)
+            X = self.bars.get_latest_bar_values(spy, 'adj_close', N=40).reshape(-1, 1)
+            Y = self.bars.get_latest_bar_values(nvda, 'adj_close', N=40)
             model = LinearRegression()
             model.fit(X, Y)
 

@@ -3,3 +3,6 @@ alpaca-py
 yfinance
 pytest
 pytest-cov
+numpy
+scikit-learn
+matplotlib
