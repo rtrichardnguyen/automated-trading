@@ -33,7 +33,7 @@ class LinearRegressionStrategy(Strategy):
         bought = {}
 
         for symbol in self.symbol_list:
-            bought['symbol'] = 'OUT'
+            bought[symbol] = 'OUT'
 
         return bought
 
@@ -45,11 +45,47 @@ class LinearRegressionStrategy(Strategy):
 
             X = self.bars.get_latest_bar_values(spy, 'adj_close', N=40).reshape(-1, 1)
             Y = self.bars.get_latest_bar_values(nvda, 'adj_close', N=40)
+
+            if len(X) < 40:
+                return
+
             model = LinearRegression()
             model.fit(X, Y)
 
             Y_pred = model.predict(X)
+            spread = Y - Y_pred
+            z_scores = (spread - spread.mean()) / spread.std()
 
+            if z_scores[-1] < -1 and self.bought[nvda] == 'OUT':
+                sig_dir = 'LONG'
+            elif z_scores[-1] > 1 and self.bought[nvda] == 'OUT':
+                sig_dir = 'SHORT'
+            elif z_scores[-1] > 1 and self.bought[nvda] == 'LONG':
+                sig_dir = 'EXIT'
+            elif z_scores[-1] < -1 and self.bought[nvda] == 'SHORT':
+                sig_dir = 'EXIT'
+            else:
+                sig_dir = None
+
+            if sig_dir:
+
+                bar_datetime = self.bars.get_latest_bar_datetime(nvda)
+                cur_datetime = dt.utcnow()
+
+                print(f"{sig_dir}: {bar_datetime}")
+                signal = SignalEvent(1, nvda, bar_datetime, sig_dir, 1.0)
+
+                self.events.put(signal)
+
+
+                if sig_dir == 'LONG' or sig_dir == 'SHORT':
+                    position_type = sig_dir
+                else:
+                    position_type = 'OUT'
+
+                self.bought[nvda] = position_type
+
+            '''
             plt.figure(figsize=(8, 6))
             plt.scatter(X, Y, color='blue', label='Data Points')
             plt.plot(X, Y_pred, color='red', linewidth='2', label='Linear Regression')
@@ -57,12 +93,13 @@ class LinearRegressionStrategy(Strategy):
             plt.grid(True)
             plt.xlabel('X')
             plt.ylabel('Y')
-            plt.show()
+            # plt.show()
+            '''
 
 if __name__ == '__main__':
 
     csv_dir = './'
-    symbol_list = ['SPY', 'NVDA']
+    symbol_list = ['NVDA', 'PLTR']
     initial_capital = 1000000
     heartbeat = 0.0
     start_date = dt(2026, 2, 24, 0, 0, 0)

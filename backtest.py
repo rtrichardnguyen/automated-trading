@@ -1,4 +1,6 @@
 # backtest.py
+#
+import pandas as pd
 
 import datetime
 import pprint
@@ -134,7 +136,8 @@ class Backtest(object):
         stats = self.portfolio.output_summary_stats()
 
         print("Creating equity curve...")
-        print(self.portfolio.equity_curve.tail(10))
+        #print(self.portfolio.equity_curve.tail(10))
+        print(self.portfolio.equity_curve)
         pprint.pprint(stats)
 
         print(f"Signals: {self.signals}")
@@ -148,34 +151,6 @@ class Backtest(object):
 
         """
 
-
         self._run_backtest()
         self._output_performance()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
