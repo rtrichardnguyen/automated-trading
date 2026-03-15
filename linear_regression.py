@@ -99,7 +99,7 @@ class LinearRegressionStrategy(Strategy):
 if __name__ == '__main__':
 
     csv_dir = './'
-    symbol_list = ['NVDA', 'PLTR']
+    symbol_list = ['SPY', 'NVDA']
     initial_capital = 1000000
     heartbeat = 0.0
     start_date = dt(2026, 2, 24, 0, 0, 0)
