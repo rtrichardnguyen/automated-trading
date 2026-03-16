@@ -20,32 +20,32 @@ class AlpacaDataHandler(DataHandler):
         self.symbol_list = symbol_list
 
         self.symbol_data = {}
-        self.latest_symbol_data = {}
-        self.continue_backtest = True
 
         self.public_key = public_key
         self.secret_key = secret_key
+        self.api_version = api_version
+        self.exchange = exchange
 
         self.message_queue = queue.Queue()
         self._setup()
-        self._start_connection(self.public_key, self.secret_key)
+        self._start_connection(self.public_key, self.secret_key, self.api_version, self.exchange)
 
     def _setup(self):
         for s in self.symbol_list:
-            self.latest_symbol_data[s] = []
+            self.symbol_data[s] = []
 
-    def _start_connection(self, public_key, secret_key):
+    def _start_connection(self, public_key, secret_key, api_version, exchange):
         loop = asyncio.new_event_loop()
         thread = threading.Thread(
             target = loop.run_until_complete,
-            args=(self._connect(public_key, secret_key),),
+            args=(self._connect(public_key, secret_key, api_version, exchange),),
             daemon=True
         )
         thread.start()
 
-    async def _connect(self, public_key, secret_key):
+    async def _connect(self, public_key, secret_key, api_version, exchange):
 
-        async with websockets.connect(self.URI) as ws:
+        async with websockets.connect(f'{self.URI}/{api_version}/{exchange}') as ws:
 
             await ws.send(json.dumps({
                 'action': 'auth',
@@ -66,34 +66,70 @@ class AlpacaDataHandler(DataHandler):
                         self.message_queue.put(message)
 
     def get_latest_bar(self, symbol):
-        pass
+        try:
+            bars_list = self.symbol_data[symbol]
+        except KeyError:
+            print("Symbol not available in data set")
+            raise
+        else:
+            return bars_list[-1]
 
     def get_latest_bars(self, symbol, N=1):
-        pass
+        try:
+            bars_list = self.symbol_data[symbol]
+        except KeyError:
+            print("Symbol not available in data set")
+            raise
+        else:
+            return bars_list[-N:]
 
     def get_latest_bar_datetime(self, symbol):
-        pass
+        try:
+            bars_list = self.symbol_data[symbol]
+        except KeyError:
+            print("Symbol not available in data set")
+            raise
+        else:
+            return bars_list[-1][0]
 
     def get_latest_bar_value(self, symbol, val_type):
-        pass
+       try:
+            bars_list = self.symbol_data[symbol]
+        except KeyError:
+            print("Symbol not available in data set")
+            raise
+        else:
+            return getattr(bars_list[-1][1], val_type)
 
     def get_latest_bar_values(self, symbol, val_type, N=1):
-        pass
+       try:
+            bars_list = self.symbol_data[symbol]
+        except KeyError:
+            print("Symbol not available in data set")
+            raise
+        else:
+            return np.array([getattr(b[1], val_type) for b in bars_list[-N:]])
 
     def update_bars(self):
 
         if not self.message_queue.empty():
 
             message = self.message_queue.get()
+            bar = self.symbol_data[message['S']]
+            previous_close = getattr(bar[-1][1], 'close') if bar else 0.0
+            returns = (message['c'] - previous_close) / previous_close if previous_close and previous_close != 0.0 else 0.0
 
-            new_bar = {
-                'datetime' : message['t'],
-                'open': message['o'],
-                'high' : message['h'],
-                'low' : message['l'],
-                'close' : message['c'],
-                'volume' : message['v']
-            }
+            new_bar = (
+                message['t'],
+                pd.Series({
+                    'open': message['o'],
+                    'high' : message['h'],
+                    'low' : message['l'],
+                    'close' : message['c'],
+                    'volume' : message['v'],
+                    'returns' : returns
+                })
+            )
 
-            self.latest_symbol_data[message['S']].append(new_bar)
+            self.symbol_data[message['S']].append(new_bar)
             self.events.put(MarketEvent())
