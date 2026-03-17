@@ -3,15 +3,9 @@
 from datetime import datetime as dt
 
 import numpy as np
-import pandas as pd
 
 from strategy import Strategy
 from event import SignalEvent
-from backtest import Backtest
-from data import HistoricCSVDataHandler
-from execution import SimulatedExecutionHandler
-from portfolio import Portfolio
-from download import Download
 
 class MovingAverageCrossStrategy(Strategy):
 
@@ -72,16 +66,4 @@ class MovingAverageCrossStrategy(Strategy):
                         self.bought[s] = 'OUT'
 
 
-if __name__ == '__main__':
-
-    csv_dir = './'
-    symbol_list = ['AMD', 'NVDA', 'SPY']
-    initial_capital = 196000.0
-    heartbeat = 0.0
-    start_date = dt(2026, 1, 26, 0, 0, 0)
-
-    Download(symbol_list)
-
-    backtest = Backtest(csv_dir, symbol_list, initial_capital, heartbeat, start_date, HistoricCSVDataHandler, SimulatedExecutionHandler, Portfolio, MovingAverageCrossStrategy)
-    backtest.simulate_trading()
 

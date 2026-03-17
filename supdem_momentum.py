@@ -18,4 +18,29 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import pandas as pd
 
+class SupplyDemandMomentumStrategy(Strategy):
+
+    def __init__(self, bars, events):
+
+        self.bars = bars
+        self.events = events
+
+        self.symbol_list = symbol_list
+        self.bought = self._calculate_initial_bought
+
+    def _calculate_initial_bought(self):
+
+        bought = {}
+
+        for symbol in self.symbol_list:
+            bought[symbol] = 'OUT'
+
+        return bought
+
+    def calculate_signals(self, event):
+
+        if event.type == 'MARKET':
+
+            for symbol in self.symbol_list:
+                pass
 
