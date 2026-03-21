@@ -44,7 +44,7 @@ ws_thread = threading.Thread(target=execution_handler.open_connection, daemon=Tr
 ws_thread.start()
 
 try:
-    anf_order = OrderEvent('MSFT', 'MKT', 1, 'LONG')
+    anf_order = OrderEvent('MSFT', 'MKT', 1, 'BUY')
     execution_handler.execute_order(anf_order)
 except KeyboardInterrupt:
     execution_handler.close_connection()

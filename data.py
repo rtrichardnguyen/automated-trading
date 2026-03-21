@@ -111,7 +111,7 @@ class HistoricCSVDataHandler(DataHandler):
             if comb_index is None:
                 comb_index = self.symbol_data[symbol].index
             else:
-                comb_index.union(self.symbol_data[symbol].index)
+                comb_index = comb_index.union(self.symbol_data[symbol].index)
 
             self.latest_symbol_data[symbol] = []
 

@@ -31,12 +31,12 @@ class AlpacaExecutionHandler(ExecutionHandler):
             if event.type == 'ORDER':
 
                 side = None
-                if event.direction == 'LONG':
+                if event.direction == 'BUY':
                     side = OrderSide.BUY
-                elif event.direction == 'SHORT':
+                elif event.direction == 'SELL':
                     side = OrderSide.SELL
                 else:
-                    raise Exeception("Order side value invalid.")
+                    raise Exception("Order side value invalid.")
 
                 order = self.create_order(
                             event.symbol,
@@ -69,10 +69,17 @@ class AlpacaExecutionHandler(ExecutionHandler):
 
         def create_fill_dict_entry(self, order):
 
+            if order.side == OrderSide.BUY:
+                direction = 'BUY'
+            elif order.side == OrderSide.SELL:
+                direction = 'SELL'
+            else:
+                raise Exception("Broker order side value invalid.")
+
             self.fill_dict[order.id] = {
                 'symbol': order.symbol,
                 'exchange': 'NYSE',
-                'direction': 'LONG' if order.side == OrderSide.BUY else 'SHORT',
+                'direction': direction,
                 'filled': False
             }
 
@@ -81,7 +88,7 @@ class AlpacaExecutionHandler(ExecutionHandler):
             fd = self.fill_dict[order.id]
 
             fill_event = FillEvent(
-                datetime.datetime.utc.now(),
+                datetime.datetime.now(datetime.UTC),
                 fd['symbol'],
                 fd['exchange'],
                 order.filled_qty,          

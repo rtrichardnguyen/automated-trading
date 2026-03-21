@@ -1,7 +1,7 @@
 # tests/test_portfolio.py
 
 import pytest
-from datetime import datetime
+from datetime import UTC, datetime
 from portfolio import Portfolio
 from event import SignalEvent, FillEvent, OrderEvent, MarketEvent
 
@@ -64,7 +64,7 @@ class TestPortfolioSignalHandling:
 
     def test_long_signal_generates_buy_order_for_100_shares(self, portfolio, event_queue):
         """LONG signal -> BUY order with fixed quantity of 100."""
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'LONG', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'LONG', 1.0)
         portfolio.update_signal(signal)
 
         assert not event_queue.empty()
@@ -76,7 +76,7 @@ class TestPortfolioSignalHandling:
 
     def test_short_signal_generates_sell_order_for_100_shares(self, portfolio, event_queue):
         """SHORT signal -> SELL order with fixed quantity of 100."""
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'SHORT', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'SHORT', 1.0)
         portfolio.update_signal(signal)
 
         order = event_queue.get()
@@ -87,7 +87,7 @@ class TestPortfolioSignalHandling:
         """EXIT signal on 75-share long -> SELL 75 (not fixed 100)."""
         portfolio.current_positions['TEST'] = 75
 
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'EXIT', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'EXIT', 1.0)
         portfolio.update_signal(signal)
 
         order = event_queue.get()
@@ -98,7 +98,7 @@ class TestPortfolioSignalHandling:
         """EXIT signal on 50-share short -> BUY 50."""
         portfolio.current_positions['TEST'] = -50
 
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'EXIT', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'EXIT', 1.0)
         portfolio.update_signal(signal)
 
         order = event_queue.get()
@@ -108,20 +108,20 @@ class TestPortfolioSignalHandling:
     def test_no_order_for_long_when_position_exists(self, portfolio, event_queue):
         """LONG signal ignored when already holding (prevents pyramiding)."""
         portfolio.current_positions['TEST'] = 100
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'LONG', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'LONG', 1.0)
         portfolio.update_signal(signal)
         assert event_queue.empty()
 
     def test_no_order_for_short_when_position_exists(self, portfolio, event_queue):
         """SHORT signal ignored when already holding."""
         portfolio.current_positions['TEST'] = -100
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'SHORT', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'SHORT', 1.0)
         portfolio.update_signal(signal)
         assert event_queue.empty()
 
     def test_exit_signal_on_flat_position_generates_nothing(self, portfolio, event_queue):
         """EXIT signal with 0 position -> no order."""
-        signal = SignalEvent(1, 'TEST', datetime.utcnow(), 'EXIT', 1.0)
+        signal = SignalEvent(1, 'TEST', datetime.now(UTC), 'EXIT', 1.0)
         portfolio.update_signal(signal)
         assert event_queue.empty()
 
@@ -136,14 +136,14 @@ class TestPortfolioFillHandling:
 
     def test_buy_fill_updates_position(self, portfolio):
         """BUY 100 shares -> position goes from 0 to 100."""
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill)
         assert portfolio.current_positions['TEST'] == 100
 
     def test_sell_fill_updates_position(self, portfolio):
         """SELL 50 from 100-share position -> position becomes 50."""
         portfolio.current_positions['TEST'] = 100
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 50, 'SELL', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 50, 'SELL', None, commission=0.0)
         portfolio.update_fill(fill)
         assert portfolio.current_positions['TEST'] == 50
 
@@ -153,7 +153,7 @@ class TestPortfolioFillHandling:
         cost = 100 * 100 * 1 = 10000
         cash = 100000 - (10000 + 1) = 89999
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=1.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=1.0)
         portfolio.update_fill(fill)
         assert portfolio.current_holdings['cash'] == 89999.0
 
@@ -164,7 +164,7 @@ class TestPortfolioFillHandling:
         cash = 100000 - (-5000 + 1) = 104999
         """
         portfolio.current_positions['TEST'] = 100
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 50, 'SELL', None, commission=1.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 50, 'SELL', None, commission=1.0)
         portfolio.update_fill(fill)
         assert portfolio.current_holdings['cash'] == 104999.0
 
@@ -173,7 +173,7 @@ class TestPortfolioFillHandling:
         Portfolio uses bar price (100), NOT fill_cost.
         Even with fill_cost=999, cash should change by bar_price * qty = 10000.
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', 999.0, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', 999.0, commission=0.0)
         portfolio.update_fill(fill)
         assert portfolio.current_holdings['cash'] == 90000.0  # 100000 - 100*100
 
@@ -182,15 +182,15 @@ class TestPortfolioFillHandling:
         SimulatedExecutionHandler sends fill_cost=None.
         Portfolio must handle this without error (it ignores fill_cost).
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill)
         assert portfolio.current_positions['TEST'] == 100
         assert portfolio.current_holdings['cash'] == 90000.0
 
     def test_commission_accumulates(self, portfolio):
         """Two fills with commissions 5.0 and 3.0 -> total commission = 8.0."""
-        fill1 = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=5.0)
-        fill2 = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 50, 'BUY', None, commission=3.0)
+        fill1 = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=5.0)
+        fill2 = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 50, 'BUY', None, commission=3.0)
         portfolio.update_fill(fill1)
         portfolio.update_fill(fill2)
         assert portfolio.current_holdings['commission'] == 8.0
@@ -200,8 +200,8 @@ class TestPortfolioFillHandling:
         Buy 100 at 100, sell 100 at 100. Commission = 2 each.
         Cash: 100000 - 10002 + 9998 = 99996. Loss = 4 (total commissions).
         """
-        buy = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=2.0)
-        sell = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'SELL', None, commission=2.0)
+        buy = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=2.0)
+        sell = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'SELL', None, commission=2.0)
         portfolio.update_fill(buy)
         portfolio.update_fill(sell)
 
@@ -215,7 +215,7 @@ class TestPortfolioFillHandling:
         Cash: 100000 - 10000 + 15000 = 105000. Profit = 5000.
         """
         # Buy at price 100
-        buy = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        buy = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(buy)
         assert portfolio.current_holdings['cash'] == 90000.0
 
@@ -223,7 +223,7 @@ class TestPortfolioFillHandling:
         mock_data_handler.set_price('TEST', 150.0)
 
         # Sell at price 150
-        sell = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'SELL', None, commission=0.0)
+        sell = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'SELL', None, commission=0.0)
         portfolio.update_fill(sell)
 
         assert portfolio.current_positions['TEST'] == 0
@@ -234,12 +234,12 @@ class TestPortfolioFillHandling:
         Buy 100 at 100, price drops to 80, sell 100 at 80.
         Cash: 100000 - 10000 + 8000 = 98000. Loss = 2000.
         """
-        buy = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        buy = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(buy)
 
         mock_data_handler.set_price('TEST', 80.0)
 
-        sell = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'SELL', None, commission=0.0)
+        sell = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'SELL', None, commission=0.0)
         portfolio.update_fill(sell)
 
         assert portfolio.current_positions['TEST'] == 0
@@ -256,7 +256,7 @@ class TestPortfolioTimeIndex:
 
         Buy 100 TEST at 100: cash = 90000, market = 100*100 = 10000, total = 100000.
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill)
         portfolio.update_timeindex(MarketEvent())
 
@@ -271,7 +271,7 @@ class TestPortfolioTimeIndex:
         Buy 100 at 100, price rises to 150.
         update_timeindex should show total = cash + market value = 90000 + 15000 = 105000.
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill)
 
         mock_data_handler.set_price('TEST', 150.0)
@@ -287,7 +287,7 @@ class TestPortfolioTimeIndex:
         Buy 100 at 100, price drops to 80.
         total = 90000 + 100*80 = 98000.
         """
-        fill = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill)
 
         mock_data_handler.set_price('TEST', 80.0)
@@ -319,12 +319,12 @@ class TestPortfolioTimeIndex:
         Total: 80000 + 10000 + 10000 = 100000
         """
         # Buy TEST
-        fill_test = FillEvent(datetime.utcnow(), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
+        fill_test = FillEvent(datetime.now(UTC), 'TEST', 'NYSE', 100, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill_test)
 
         # Buy AAPL at different price
         mock_data_handler.set_price('AAPL', 200.0)
-        fill_aapl = FillEvent(datetime.utcnow(), 'AAPL', 'NYSE', 50, 'BUY', None, commission=0.0)
+        fill_aapl = FillEvent(datetime.now(UTC), 'AAPL', 'NYSE', 50, 'BUY', None, commission=0.0)
         portfolio.update_fill(fill_aapl)
 
         portfolio.update_timeindex(MarketEvent())

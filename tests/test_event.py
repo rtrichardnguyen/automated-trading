@@ -52,6 +52,12 @@ class TestSignalEvent:
         signal = SignalEvent(1, 'AAPL', dt, 'EXIT', 1.0)
         assert signal.signal_type == 'EXIT'
 
+    def test_signal_event_invalid_type_raises(self):
+        """Unsupported signal types should be rejected."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        with pytest.raises(ValueError):
+            SignalEvent(1, 'AAPL', dt, 'BUY', 1.0)
+
     def test_signal_event_inherits_from_event(self):
         """Test SignalEvent is a subclass of Event."""
         dt = datetime(2024, 1, 1, 10, 0, 0)
@@ -97,6 +103,11 @@ class TestOrderEvent:
         """Test OrderEvent raises error for non-integer quantity."""
         with pytest.raises(ValueError):
             OrderEvent('AAPL', 'MKT', 10.5, 'BUY')
+
+    def test_order_event_invalid_direction_raises(self):
+        """Order direction must use execution semantics, not signal semantics."""
+        with pytest.raises(ValueError):
+            OrderEvent('AAPL', 'MKT', 100, 'LONG')
 
     def test_order_event_print_order(self, capsys):
         """Test print_order method outputs correctly."""
@@ -151,6 +162,12 @@ class TestFillEvent:
         fill = FillEvent(dt, 'AAPL', 'NYSE', 50, 'SELL', 150.0)
         assert fill.direction == 'SELL'
         assert fill.quantity == 50
+
+    def test_fill_event_invalid_direction_raises(self):
+        """Fill direction must use BUY/SELL."""
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        with pytest.raises(ValueError):
+            FillEvent(dt, 'AAPL', 'NYSE', 50, 'LONG', 150.0)
 
     def test_fill_event_inherits_from_event(self):
         """Test FillEvent is a subclass of Event."""

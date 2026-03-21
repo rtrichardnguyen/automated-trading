@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import UTC, datetime as dt
 from datetime import timedelta
 
 import numpy as np
@@ -70,7 +70,7 @@ class LinearRegressionStrategy(Strategy):
             if sig_dir:
 
                 bar_datetime = self.bars.get_latest_bar_datetime(nvda)
-                cur_datetime = dt.utcnow()
+                cur_datetime = dt.now(UTC)
 
                 print(f"{sig_dir}: {bar_datetime}")
                 signal = SignalEvent(1, nvda, bar_datetime, sig_dir, 1.0)
@@ -95,16 +95,3 @@ class LinearRegressionStrategy(Strategy):
             plt.ylabel('Y')
             # plt.show()
             '''
-
-if __name__ == '__main__':
-
-    csv_dir = './'
-    symbol_list = ['SPY', 'NVDA']
-    initial_capital = 1000000
-    heartbeat = 0.0
-    start_date = dt(2026, 2, 24, 0, 0, 0)
-
-    Download(symbol_list)
-
-    backtest = Backtest(csv_dir, symbol_list, initial_capital, heartbeat, start_date, HistoricCSVDataHandler, SimulatedExecutionHandler, Portfolio, LinearRegressionStrategy)
-    backtest.simulate_trading()

@@ -1,6 +1,6 @@
 # mac.py
 
-from datetime import datetime as dt
+from datetime import UTC, datetime as dt
 
 import numpy as np
 
@@ -46,7 +46,7 @@ class MovingAverageCrossStrategy(Strategy):
                     long_sma = np.mean(bars[-self.long_window:])
 
                     symbol = s
-                    cur_date = dt.utcnow()
+                    cur_date = dt.now(UTC)
                     sig_dir = ""
 
                     if short_sma > long_sma and self.bought[s] == 'OUT':
@@ -64,6 +64,5 @@ class MovingAverageCrossStrategy(Strategy):
                         signal = SignalEvent(1, symbol, cur_date, sig_dir, 1.0)
                         self.events.put(signal)
                         self.bought[s] = 'OUT'
-
 
 

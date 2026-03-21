@@ -76,7 +76,7 @@ SECRET_KEY=your_alpaca_secret_key
 The project includes a Moving Average Crossover strategy as an example (`mac.py`):
 
 ```python
-from datetime import datetime as dt
+from datetime import UTC, datetime as dt
 from backtest import Backtest
 from data import HistoricCSVDataHandler
 from execution import SimulatedExecutionHandler
@@ -124,7 +124,7 @@ ws_thread = threading.Thread(target=execution_handler.open_connection, daemon=Tr
 ws_thread.start()
 
 # Execute order
-order = OrderEvent('MSFT', 'MKT', 1, 'LONG')
+order = OrderEvent('MSFT', 'MKT', 1, 'BUY')
 execution_handler.execute_order(order)
 ```
 
@@ -149,7 +149,7 @@ class MyStrategy(Strategy):
             signal = SignalEvent(
                 strategy_id=1,
                 symbol='AAPL',
-                datetime=dt.utcnow(),
+                datetime=dt.now(UTC),
                 signal_type='LONG',
                 strength=1.0
             )
@@ -307,9 +307,8 @@ class TestYourFeature:
 
 ### Key Gaps Before Production
 
-- Order direction semantics are inconsistent across components (`BUY`/`SELL` vs `LONG`/`SHORT`)
 - `AlpacaDataHandler` is currently a skeleton and not production-capable
-- Live execution path has runtime correctness issues (for example, invalid `datetime.datetime.utc.now()` usage and exception typos)
+- Live execution path still needs hardening around async updates, partial fills, and broker-state reconciliation
 - No production risk controls (position limits, daily loss limits, kill switch, exposure caps)
 - No persistent state/reconciliation for restarts (orders, fills, positions)
 - No structured observability stack (logs, metrics, alerting, audit trail)
@@ -318,7 +317,6 @@ class TestYourFeature:
 
 ### Minimum Go-Live Checklist
 
-- [ ] Unify order/fill direction model across strategy, portfolio, execution, and broker integrations
 - [ ] Fully implement `AlpacaDataHandler` with reconnect, backfill, and market-hours behavior
 - [ ] Harden `AlpacaExecutionHandler` for async updates, partial fills, retries, and idempotency
 - [ ] Add risk engine: sizing rules, max notional/exposure, daily loss limits, and emergency stop

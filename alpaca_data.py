@@ -19,7 +19,7 @@ class AlpacaDataHandler(DataHandler):
         self.events = events
         self.symbol_list = symbol_list
 
-        self.symbol_data = {}
+        self.latest_symbol_data = {}
 
         self.public_key = public_key
         self.secret_key = secret_key
@@ -32,7 +32,7 @@ class AlpacaDataHandler(DataHandler):
 
     def _setup(self):
         for s in self.symbol_list:
-            self.symbol_data[s] = []
+            self.latest_symbol_data[s] = []
 
     def _start_connection(self, public_key, secret_key, api_version, exchange):
         loop = asyncio.new_event_loop()
@@ -67,7 +67,7 @@ class AlpacaDataHandler(DataHandler):
 
     def get_latest_bar(self, symbol):
         try:
-            bars_list = self.symbol_data[symbol]
+            bars_list = self.latest_symbol_data[symbol]
         except KeyError:
             print("Symbol not available in data set")
             raise
@@ -76,7 +76,7 @@ class AlpacaDataHandler(DataHandler):
 
     def get_latest_bars(self, symbol, N=1):
         try:
-            bars_list = self.symbol_data[symbol]
+            bars_list = self.latest_symbol_data[symbol]
         except KeyError:
             print("Symbol not available in data set")
             raise
@@ -85,7 +85,7 @@ class AlpacaDataHandler(DataHandler):
 
     def get_latest_bar_datetime(self, symbol):
         try:
-            bars_list = self.symbol_data[symbol]
+            bars_list = self.latest_symbol_data[symbol]
         except KeyError:
             print("Symbol not available in data set")
             raise
@@ -93,8 +93,8 @@ class AlpacaDataHandler(DataHandler):
             return bars_list[-1][0]
 
     def get_latest_bar_value(self, symbol, val_type):
-       try:
-            bars_list = self.symbol_data[symbol]
+        try:
+            bars_list = self.latest_symbol_data[symbol]
         except KeyError:
             print("Symbol not available in data set")
             raise
@@ -102,8 +102,8 @@ class AlpacaDataHandler(DataHandler):
             return getattr(bars_list[-1][1], val_type)
 
     def get_latest_bar_values(self, symbol, val_type, N=1):
-       try:
-            bars_list = self.symbol_data[symbol]
+        try:
+            bars_list = self.latest_symbol_data[symbol]
         except KeyError:
             print("Symbol not available in data set")
             raise
@@ -112,12 +112,12 @@ class AlpacaDataHandler(DataHandler):
 
     def update_bars(self):
 
-        if not self.message_queue.empty():
+        while not self.message_queue.empty():
 
             message = self.message_queue.get()
-            bar = self.symbol_data[message['S']]
-            previous_close = getattr(bar[-1][1], 'close') if bar else 0.0
-            returns = (message['c'] - previous_close) / previous_close if previous_close and previous_close != 0.0 else 0.0
+            bar = self.latest_symbol_data[message['S']]
+            previous_close = getattr(bar[-1][1], 'close') if bar else np.nan
+            returns = (message['c'] - previous_close) / previous_close if previous_close and previous_close != 0.0 else np.nan
 
             new_bar = (
                 message['t'],
@@ -131,5 +131,5 @@ class AlpacaDataHandler(DataHandler):
                 })
             )
 
-            self.symbol_data[message['S']].append(new_bar)
+            self.latest_symbol_data[message['S']].append(new_bar)
             self.events.put(MarketEvent())

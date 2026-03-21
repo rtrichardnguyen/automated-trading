@@ -1,7 +1,7 @@
 # tests/test_execution.py
 
 import pytest
-from datetime import datetime
+from datetime import UTC, datetime
 from execution import SimulatedExecutionHandler
 from event import OrderEvent, FillEvent
 
@@ -92,9 +92,9 @@ class TestSimulatedExecutionHandler:
         handler = SimulatedExecutionHandler(event_queue)
         order = OrderEvent('AAPL', 'MKT', 100, 'BUY')
 
-        before = datetime.utcnow()
+        before = datetime.now(UTC)
         handler.execute_order(order)
-        after = datetime.utcnow()
+        after = datetime.now(UTC)
 
         fill = event_queue.get()
         assert before <= fill.timeindex <= after

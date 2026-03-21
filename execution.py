@@ -79,8 +79,14 @@ class SimulatedExecutionHandler(ExecutionHandler):
 
         if event.type == 'ORDER':
 
-            fill_event = FillEvent(datetime.datetime.utcnow(), event.symbol, 'NYSE', event.quantity, event.direction, None)
+            fill_event = FillEvent(
+                datetime.datetime.now(datetime.UTC),
+                event.symbol,
+                'NYSE',
+                event.quantity,
+                event.direction,
+                None,
+            )
             self.events.put(fill_event)
-
 
 

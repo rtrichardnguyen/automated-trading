@@ -1,5 +1,9 @@
 # event.py
 
+VALID_SIGNAL_TYPES = {'LONG', 'SHORT', 'EXIT'}
+VALID_ORDER_DIRECTIONS = {'BUY', 'SELL'}
+VALID_FILL_DIRECTIONS = {'BUY', 'SELL'}
+
 class Event(object):
     
     """
@@ -33,7 +37,7 @@ class SignalEvent(Event):
     strategy_id - The unique identifier for the strategy that generated the signal.
     symbol - The ticker symbol, e.g. ’GOOG’.
     datetime - The timestamp at which the signal was generated.
-    signal_type - ’LONG’ or ’SHORT’.
+    signal_type - 'LONG', 'SHORT', or 'EXIT'.
     strength - An adjustment factor "suggestion" used to scale quantity at the portfolio level. Useful for pairs strategies.
 
     """
@@ -44,8 +48,17 @@ class SignalEvent(Event):
         self.strategy_id = strategy_id
         self.symbol = symbol
         self.datetime = datetime
-        self.signal_type = signal_type
+        self.signal_type = self._check_signal_type(signal_type)
         self.strength = strength
+
+    def _check_signal_type(self, signal_type):
+
+        if signal_type not in VALID_SIGNAL_TYPES:
+            raise ValueError(
+                f"Signal event type must be one of {sorted(VALID_SIGNAL_TYPES)}"
+            )
+
+        return signal_type
 
 
 class OrderEvent(Event):
@@ -76,7 +89,7 @@ class OrderEvent(Event):
         self.symbol = symbol
         self.order_type = order_type
         self.quantity = self._check_set_quantity_positive(quantity)
-        self.direction = direction
+        self.direction = self._check_direction(direction)
 
 
     def _check_set_quantity_positive(self, quantity):
@@ -85,6 +98,15 @@ class OrderEvent(Event):
             raise ValueError("Order event quantity is not a positive integer")
 
         return quantity
+
+    def _check_direction(self, direction):
+
+        if direction not in VALID_ORDER_DIRECTIONS:
+            raise ValueError(
+                f"Order event direction must be one of {sorted(VALID_ORDER_DIRECTIONS)}"
+            )
+
+        return direction
 
     def print_order(self):
 
@@ -128,7 +150,7 @@ class FillEvent(Event):
         self.symbol = symbol
         self.exchange = exchange
         self.quantity = quantity
-        self.direction = direction
+        self.direction = self._check_direction(direction)
         self.fill_cost = fill_cost
 
         if commission is None:
@@ -142,3 +164,11 @@ class FillEvent(Event):
         # TODO
         return 0
 
+    def _check_direction(self, direction):
+
+        if direction not in VALID_FILL_DIRECTIONS:
+            raise ValueError(
+                f"Fill event direction must be one of {sorted(VALID_FILL_DIRECTIONS)}"
+            )
+
+        return direction

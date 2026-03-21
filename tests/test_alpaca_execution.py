@@ -90,8 +90,8 @@ class TestAlpacaExecutionHandlerOrderExecution:
     """Test order execution with Alpaca API."""
 
     def test_execute_market_order_buy(self, alpaca_handler):
-        """LONG direction translates to OrderSide.BUY and submits order."""
-        order = OrderEvent('AAPL', 'MKT', 100, 'LONG')
+        """BUY direction translates to OrderSide.BUY and submits order."""
+        order = OrderEvent('AAPL', 'MKT', 100, 'BUY')
 
         # Mock the submitted order response
         mock_submitted = Mock(id=uuid.uuid4())
@@ -109,8 +109,8 @@ class TestAlpacaExecutionHandlerOrderExecution:
         assert order_data.side == OrderSide.BUY
 
     def test_execute_market_order_sell(self, alpaca_handler):
-        """SHORT direction translates to OrderSide.SELL."""
-        order = OrderEvent('AAPL', 'MKT', 50, 'SHORT')
+        """SELL direction translates to OrderSide.SELL."""
+        order = OrderEvent('AAPL', 'MKT', 50, 'SELL')
 
         mock_submitted = Mock(id=uuid.uuid4())
         alpaca_handler.trading_client.submit_order.return_value = mock_submitted
@@ -125,7 +125,7 @@ class TestAlpacaExecutionHandlerOrderExecution:
 
     def test_execute_limit_order(self, alpaca_handler):
         """LMT order type creates LimitOrderRequest."""
-        order = OrderEvent('TSLA', 'LMT', 75, 'LONG')
+        order = OrderEvent('TSLA', 'LMT', 75, 'BUY')
 
         mock_submitted = Mock(id=uuid.uuid4())
         alpaca_handler.trading_client.submit_order.return_value = mock_submitted
@@ -140,16 +140,13 @@ class TestAlpacaExecutionHandlerOrderExecution:
         assert order_data.limit_price == 0  # TODO in implementation
 
     def test_invalid_direction_raises_exception(self, alpaca_handler):
-        """Invalid direction (not LONG/SHORT) raises exception."""
-        order = OrderEvent('AAPL', 'MKT', 100, 'BUY')  # Should be LONG, not BUY
-
-        # Note: implementation has typo "Exeception"
-        with pytest.raises(Exception):
-            alpaca_handler.execute_order(order)
+        """Invalid direction (not BUY/SELL) is rejected by OrderEvent."""
+        with pytest.raises(ValueError):
+            OrderEvent('AAPL', 'MKT', 100, 'LONG')
 
     def test_invalid_order_type_raises_exception(self, alpaca_handler):
         """Unsupported order type raises exception."""
-        order = OrderEvent('AAPL', 'STOP', 100, 'LONG')
+        order = OrderEvent('AAPL', 'STOP', 100, 'BUY')
 
         with pytest.raises(Exception) as exc_info:
             alpaca_handler.execute_order(order)
@@ -158,7 +155,7 @@ class TestAlpacaExecutionHandlerOrderExecution:
 
     def test_order_id_stored_after_submission(self, alpaca_handler):
         """After order submission, order_id is updated."""
-        order = OrderEvent('AAPL', 'MKT', 100, 'LONG')
+        order = OrderEvent('AAPL', 'MKT', 100, 'BUY')
 
         expected_id = uuid.uuid4()
         mock_submitted = Mock(id=expected_id)
@@ -240,7 +237,7 @@ class TestAlpacaExecutionHandlerFillDictEntry:
     """Test create_fill_dict_entry method."""
 
     def test_create_fill_dict_entry_buy(self, alpaca_handler):
-        """Fill dict entry for BUY order has LONG direction."""
+        """Fill dict entry for BUY order keeps BUY direction."""
         order_id = uuid.uuid4()
         mock_order = Mock(
             id=order_id,
@@ -251,11 +248,11 @@ class TestAlpacaExecutionHandlerFillDictEntry:
         alpaca_handler.create_fill_dict_entry(mock_order)
 
         assert alpaca_handler.fill_dict[order_id]['symbol'] == 'MSFT'
-        assert alpaca_handler.fill_dict[order_id]['direction'] == 'LONG'
+        assert alpaca_handler.fill_dict[order_id]['direction'] == 'BUY'
         assert alpaca_handler.fill_dict[order_id]['filled'] == False
 
     def test_create_fill_dict_entry_sell(self, alpaca_handler):
-        """Fill dict entry for SELL order has SHORT direction."""
+        """Fill dict entry for SELL order keeps SELL direction."""
         order_id = uuid.uuid4()
         mock_order = Mock(
             id=order_id,
@@ -265,7 +262,7 @@ class TestAlpacaExecutionHandlerFillDictEntry:
 
         alpaca_handler.create_fill_dict_entry(mock_order)
 
-        assert alpaca_handler.fill_dict[order_id]['direction'] == 'SHORT'
+        assert alpaca_handler.fill_dict[order_id]['direction'] == 'SELL'
 
 
 class TestAlpacaExecutionHandlerCreateFill:
@@ -278,7 +275,7 @@ class TestAlpacaExecutionHandlerCreateFill:
         alpaca_handler.fill_dict[order_id] = {
             'symbol': 'NVDA',
             'exchange': 'NYSE',
-            'direction': 'LONG',
+            'direction': 'BUY',
             'filled': False
         }
 
@@ -288,16 +285,16 @@ class TestAlpacaExecutionHandlerCreateFill:
             filled_avg_price=500.25
         )
 
-        # Mock datetime.datetime.utc.now() which doesn't exist in Python 3.9
+        # Mock datetime.datetime.now(...) for deterministic fill timestamps.
         with patch('alpaca_execution.datetime') as mock_dt:
-            mock_dt.datetime.utcnow.return_value = datetime(2024, 1, 1, 10, 0, 0)
+            mock_dt.datetime.now.return_value = datetime(2024, 1, 1, 10, 0, 0)
             alpaca_handler.create_fill(mock_order)
 
         fill = event_queue.get()
         assert fill.symbol == 'NVDA'
         assert fill.quantity == 200
         assert fill.fill_cost == 500.25
-        assert fill.direction == 'LONG'
+        assert fill.direction == 'BUY'
         assert fill.exchange == 'NYSE'
 
     def test_create_fill_marks_as_filled(self, alpaca_handler, event_queue):
@@ -307,7 +304,7 @@ class TestAlpacaExecutionHandlerCreateFill:
         alpaca_handler.fill_dict[order_id] = {
             'symbol': 'TEST',
             'exchange': 'NYSE',
-            'direction': 'LONG',
+            'direction': 'BUY',
             'filled': False
         }
 
@@ -315,7 +312,7 @@ class TestAlpacaExecutionHandlerCreateFill:
 
         # Mock datetime for Python 3.9 compatibility
         with patch('alpaca_execution.datetime') as mock_dt:
-            mock_dt.datetime.utcnow.return_value = datetime(2024, 1, 1, 10, 0, 0)
+            mock_dt.datetime.now.return_value = datetime(2024, 1, 1, 10, 0, 0)
             alpaca_handler.create_fill(mock_order)
 
         assert alpaca_handler.fill_dict[order_id]['filled'] == True
